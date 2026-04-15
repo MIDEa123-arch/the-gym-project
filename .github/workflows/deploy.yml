@@ -163,6 +163,29 @@ jobs:
           docker tag ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.SQL_IMAGE }}:latest ql_phonggym_sql:latest
         shell: powershell
 
+      - name: Ensure sql_server is running
+        run: |
+          # Start sql_server if not already running (preserves existing data volume)
+          docker compose up -d sql_server
+          Write-Host "Waiting for SQL Server to be healthy (max 3 min)..."
+          $maxWait = 36  # 36 x 5s = 3 minutes
+          $count = 0
+          do {
+            Start-Sleep -Seconds 5
+            $count++
+            $health = docker inspect --format="{{.State.Health.Status}}" (docker compose ps -q sql_server) 2>&1
+            Write-Host "[$count/$maxWait] SQL Server health: $health"
+          } while ($health -ne "healthy" -and $count -lt $maxWait)
+
+          if ($health -ne "healthy") {
+            Write-Host "SQL Server not healthy after timeout, showing logs:"
+            docker compose logs sql_server --tail 30
+            Write-Error "SQL Server failed to become healthy!"
+            exit 1
+          }
+          Write-Host "SQL Server is healthy - proceeding with web_app restart."
+        shell: powershell
+
       - name: Restart web_app only (keep sql_server to preserve data)
         run: docker compose up -d --no-deps --no-build web_app
         shell: powershell
