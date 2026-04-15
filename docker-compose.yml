@@ -1,0 +1,62 @@
+services:
+  # ── Web Application (ASP.NET Framework 4.8 trên IIS) ──────────────────
+  web_app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ql_phonggym_web:latest
+    isolation: process           
+    ports:
+      - "8888:80"
+    depends_on:
+      - sql_server
+    networks:
+      - gym_network
+    restart: unless-stopped
+
+  # ── SQL Server Express (build từ Dockerfile.sql + start.ps1) ──────────
+  sql_server:
+    build:
+      context: .
+      dockerfile: Dockerfile.sql
+    image: ql_phonggym_sql:latest
+    isolation: hyperv            # SỬA TỪ process -> hyperv
+    ports:
+      - "1433:1433"
+    environment:
+      - ACCEPT_EULA=Y
+      - sa_password=Admin@123!_Gym
+      - attach_dbs=[]
+    volumes:
+      - sql_data:C:\Data
+    networks:
+      - gym_network
+    restart: always
+
+  # ── DB Seeder: chạy một lần để nạp dữ liệu mẫu (InitDB_Data.sql) ─────
+  db_seeder:
+    build:
+      context: .
+      dockerfile: Dockerfile.sql
+    image: ql_phonggym_sql:latest
+    isolation: hyperv            # SỬA TỪ process -> hyperv
+    depends_on:
+      - sql_server
+    environment:
+      - ACCEPT_EULA=Y
+    networks:
+      - gym_network
+    command: >-
+      powershell -NoLogo -ExecutionPolicy Bypass -Command
+      "Start-Sleep -Seconds 30; 
+       Write-Host 'Seeding database...';
+       sqlcmd -S sql_server -U sa -P 'Admin@123!_Gym' -d master -i C:\InitDB_Data.sql;
+       Write-Host 'Seed complete.'"
+    restart: "no"
+
+networks:
+  gym_network:
+    driver: nat
+
+volumes:
+  sql_data:
