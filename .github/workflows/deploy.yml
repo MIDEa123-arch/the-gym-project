@@ -92,13 +92,23 @@ jobs:
 
       - name: Test Web App HTTP response
         run: |
-          $response = Invoke-WebRequest -Uri "http://localhost:8888" -UseBasicParsing -TimeoutSec 30
-          Write-Host "HTTP Status: $($response.StatusCode)"
-          if ($response.StatusCode -ne 200) {
-            Write-Error "Web app returned non-200 status!"
+          try {
+            $response = Invoke-WebRequest -Uri "http://localhost:8888" -UseBasicParsing -TimeoutSec 30 -ErrorAction Stop
+            Write-Host "HTTP Status: $($response.StatusCode)"
+            Write-Host "Web App OK"
+          } catch {
+            $statusCode = $_.Exception.Response.StatusCode.Value__
+            Write-Host "HTTP Status: $statusCode"
+            # In ra body loi de xem exception thuc su (hoat dong sau khi customErrors=Off)
+            $errBody = $_.Exception.Response.GetResponseStream()
+            $reader = New-Object System.IO.StreamReader($errBody)
+            $bodyText = $reader.ReadToEnd()
+            Write-Host "=== ERROR BODY ==="
+            Write-Host $bodyText
+            Write-Host "=================="
+            Write-Error "Web app returned HTTP $statusCode"
             exit 1
           }
-          Write-Host "Web App OK"
         shell: powershell
 
       - name: Test SQL Server connectivity (PowerShell Version)
