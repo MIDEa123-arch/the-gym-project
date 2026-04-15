@@ -103,8 +103,11 @@ jobs:
 
       - name: Test SQL Server connectivity
         run: |
-          $result = sqlcmd -S localhost,1433 -U sa -P "${{ secrets.SA_PASSWORD }}" `
-                           -Q "SELECT 'SQL Server OK' AS Status" -h -1
+          # Use sqlcmd inside the SQL Server container — no local install needed
+          $result = docker exec sql_server `
+            /opt/mssql-tools/bin/sqlcmd `
+            -S localhost -U sa -P "${{ secrets.SA_PASSWORD }}" `
+            -Q "SELECT 'SQL Server OK' AS Status" -h -1 2>&1
           Write-Host $result
           if ($result -notmatch "SQL Server OK") {
             Write-Error "SQL Server connectivity test failed!"
