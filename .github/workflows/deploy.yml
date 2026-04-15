@@ -1,11 +1,11 @@
-name: CI/CD – Gym Management System
+name: CI/CD - Gym Management System
 
 on:
   push:
     branches: [ "main", "master" ]
   pull_request:
     branches: [ "main", "master" ]
-  workflow_dispatch:   # Cho phép chạy thủ công từ GitHub UI
+  workflow_dispatch:   # Allow manual trigger from GitHub UI
 
 env:
   WEB_IMAGE: ql_phonggym_web
@@ -17,13 +17,13 @@ jobs:
   # ─────────────────────────────────────────────
   build:
     name: Build Docker Images
-    runs-on: self-hosted          # PHẢI dùng Windows runner cho Windows Containers
+    runs-on: self-hosted          # Must use Windows runner for Windows Containers
 
     steps:
       - name: Checkout source code
         uses: actions/checkout@v4
 
-      - name: Switch Docker to Windows Containers mode
+      - name: Check Docker version
         run: |          
           Start-Sleep -Seconds 5
           docker version
@@ -61,7 +61,7 @@ jobs:
         shell: powershell
 
   # ─────────────────────────────────────────────
-  # JOB 2: SMOKE TEST (chạy stack và kiểm tra)
+  # JOB 2: SMOKE TEST
   # ─────────────────────────────────────────────
   smoke-test:
     name: Smoke Test
@@ -73,7 +73,7 @@ jobs:
       - name: Checkout source code
         uses: actions/checkout@v4
 
-      - name: Switch Docker to Windows Containers mode
+      - name: Check Docker mode
         run: |          
           Start-Sleep -Seconds 5
         shell: powershell
@@ -99,7 +99,7 @@ jobs:
           } catch {
             $statusCode = $_.Exception.Response.StatusCode.Value__
             Write-Host "HTTP Status: $statusCode"
-            # In ra body loi de xem exception thuc su (hoat dong sau khi customErrors=Off)
+            # Print error body to see the actual exception (works after customErrors=Off)
             $errBody = $_.Exception.Response.GetResponseStream()
             $reader = New-Object System.IO.StreamReader($errBody)
             $bodyText = $reader.ReadToEnd()
@@ -111,18 +111,18 @@ jobs:
           }
         shell: powershell
 
-      - name: Test SQL Server connectivity (PowerShell Version)
+      - name: Test SQL Server connectivity
         run: |
-          # Dùng thư viện có sẵn của hệ thống, không cần sqlcmd
+          # Use built-in .NET SqlClient - no sqlcmd install needed
           $connectionString = "Server=localhost,1433;Database=master;User Id=sa;Password=${{ secrets.SA_PASSWORD }};TrustServerCertificate=True;"
           $connection = New-Object System.Data.SqlClient.SqlConnection($connectionString)
           try {
-              Write-Host "Đang thử kết nối SQL Server..."
+              Write-Host "Connecting to SQL Server..."
               $connection.Open()
-              Write-Host "✅ SQL Server OK (Kết nối thành công!)"
+              Write-Host "SQL Server OK - Connection successful!"
               $connection.Close()
           } catch {
-              Write-Error "❌ Lỗi kết nối SQL Server: $($_.Exception.Message)"
+              Write-Error "SQL Server connection failed: $($_.Exception.Message)"
               exit 1
           }
           Write-Host "SQL Server OK"
@@ -139,11 +139,11 @@ jobs:
         shell: powershell
 
   # ─────────────────────────────────────────────
-  # JOB 3: DEPLOY lên Windows Server (tự host)
+  # JOB 3: DEPLOY to Windows Server
   # ─────────────────────────────────────────────
   deploy:
     name: Deploy to Windows Server
-    runs-on: self-hosted          # Runner cài trên chính máy chủ Windows Server
+    runs-on: self-hosted          # Runner installed on the Windows Server host
     needs: smoke-test
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
 
@@ -157,42 +157,42 @@ jobs:
           docker pull ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.SQL_IMAGE }}:latest
         shell: powershell
 
-      - name: Tag pulled images với tên local
+      - name: Tag pulled images with local names
         run: |
           docker tag ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.WEB_IMAGE }}:latest ql_phonggym_web:latest
           docker tag ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.SQL_IMAGE }}:latest ql_phonggym_sql:latest
         shell: powershell
 
-      - name: Restart only web_app (giữ nguyên sql_server để bảo toàn dữ liệu)
+      - name: Restart web_app only (keep sql_server to preserve data)
         run: docker compose up -d --no-deps --no-build web_app
         shell: powershell
 
       - name: Verify deployment
         run: |
-          Write-Host "Dang cho he thong khoi dong (120s)..."
+          Write-Host "Waiting for system to start (120s)..."
           Start-Sleep -Seconds 120
 
           try {
             $response = Invoke-WebRequest -Uri "http://localhost:8888" -UseBasicParsing -TimeoutSec 60 -ErrorAction Stop
             Write-Host "Status Code: $($response.StatusCode)"
             if ($response.StatusCode -eq 200) {
-              Write-Host "THANH CONG: WEB DA ONLINE!"
+              Write-Host "SUCCESS: WEB IS ONLINE!"
             } else {
-              Write-Host "Canh bao: HTTP $($response.StatusCode)"
+              Write-Host "WARNING: HTTP $($response.StatusCode)"
             }
           } catch {
             $statusCode = $_.Exception.Response.StatusCode.Value__
             Write-Host "HTTP Status: $statusCode"
-            Write-Host "Loi: $($_.Exception.Message)"
+            Write-Host "Error: $($_.Exception.Message)"
             Write-Host "--- Container logs (web_app) ---"
             docker logs web_app --tail 30 2>&1
             Write-Host "--- Container logs (sql_server) ---"
             docker logs sql_server --tail 30 2>&1
             if ($statusCode -eq 500) {
-              Write-Host "App dang chay nhung co Runtime Error (HTTP 500) - kiem tra logs phia tren"
-              # Khong exit 1 - container dang chay, loi co the do config/DB
+              Write-Host "App is running but returned Runtime Error (HTTP 500) - check logs above"
+              # Do not exit 1 - container is running, error may be config/DB related
             } else {
-              Write-Error "Khong the ket noi toi web app!"
+              Write-Error "Cannot connect to web app!"
               exit 1
             }
           }
