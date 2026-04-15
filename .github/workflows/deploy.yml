@@ -159,13 +159,13 @@ jobs:
 
       - name: Verify deployment
         run: |
-          Write-Host "Đang đợi hệ thống khởi động và Seed dữ liệu (120s)..."
-          # Tăng lên 120s vì có bước db_seeder chờ 30s + IIS warm-up
+          Write-Host "Dang cho he thong khoi dong (120s)..."
           Start-Sleep -Seconds 120 
           
           $response = Invoke-WebRequest -Uri "http://localhost:8888" -UseBasicParsing -TimeoutSec 60
-          Write-Host "Kết quả: $($response.StatusCode)"
+          Write-Host "Status Code: $($response.StatusCode)"
+          
           if ($response.StatusCode -eq 200) {
-              Write-Host "🚀 CHÚC MỪNG NGUYỄN! WEB ĐÃ ONLINE!"
+              Write-Host "THANH CONG: WEB DA ONLINE!"
           }
         shell: powershell
