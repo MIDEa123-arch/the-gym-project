@@ -35,11 +35,12 @@ services:
       - gym_network
     restart: always
     healthcheck:
-      test: ["CMD", "sqlcmd", "-S", "localhost", "-U", "sa", "-P", "Admin@123!_Gym", "-Q", "SELECT 1"]
+      test: ["CMD", "powershell", "-Command",
+             "try { & sqlcmd -S localhost -U sa -P 'Admin@123!_Gym' -Q 'SELECT 1' -b; exit 0 } catch { exit 1 }"]
       interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 60s
+      timeout: 10s
+      retries: 12
+      start_period: 90s
 
 
   # ── DB Seeder: chạy một lần để nạp dữ liệu mẫu (InitDB_Data.sql) ─────
