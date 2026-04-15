@@ -65,7 +65,7 @@ jobs:
   # ─────────────────────────────────────────────
   smoke-test:
     name: Smoke Test
-    runs-on: windows-2019
+    runs-on: self-hosted
     needs: build
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
 
