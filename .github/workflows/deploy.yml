@@ -17,7 +17,7 @@ jobs:
   # ─────────────────────────────────────────────
   build:
     name: Build Docker Images
-    runs-on: windows-2019          # PHẢI dùng Windows runner cho Windows Containers
+    runs-on: self-hosted          # PHẢI dùng Windows runner cho Windows Containers
 
     steps:
       - name: Checkout source code
