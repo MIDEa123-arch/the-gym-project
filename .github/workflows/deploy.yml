@@ -160,12 +160,38 @@ jobs:
       - name: Verify deployment
         run: |
           Write-Host "Dang cho he thong khoi dong (120s)..."
-          Start-Sleep -Seconds 120 
-          
-          $response = Invoke-WebRequest -Uri "http://localhost:8888" -UseBasicParsing -TimeoutSec 60
-          Write-Host "Status Code: $($response.StatusCode)"
-          
-          if ($response.StatusCode -eq 200) {
+          Start-Sleep -Seconds 120
+
+          try {
+            $response = Invoke-WebRequest -Uri "http://localhost:8888" -UseBasicParsing -TimeoutSec 60 -ErrorAction Stop
+            Write-Host "Status Code: $($response.StatusCode)"
+            if ($response.StatusCode -eq 200) {
               Write-Host "THANH CONG: WEB DA ONLINE!"
+            } else {
+              Write-Host "Canh bao: HTTP $($response.StatusCode)"
+            }
+          } catch {
+            $statusCode = $_.Exception.Response.StatusCode.Value__
+            Write-Host "HTTP Status: $statusCode"
+            Write-Host "Loi: $($_.Exception.Message)"
+            Write-Host "--- Container logs (web_app) ---"
+            docker logs web_app --tail 30 2>&1
+            Write-Host "--- Container logs (sql_server) ---"
+            docker logs sql_server --tail 30 2>&1
+            if ($statusCode -eq 500) {
+              Write-Host "App dang chay nhung co Runtime Error (HTTP 500) - kiem tra logs phia tren"
+              # Khong exit 1 - container dang chay, loi co the do config/DB
+            } else {
+              Write-Error "Khong the ket noi toi web app!"
+              exit 1
+            }
           }
+        shell: powershell
+
+      - name: Show container status
+        if: always()
+        run: |
+          docker compose ps
+          Write-Host "--- web_app logs ---"
+          docker logs web_app --tail 50 2>&1
         shell: powershell

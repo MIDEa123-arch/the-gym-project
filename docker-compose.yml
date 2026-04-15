@@ -9,10 +9,12 @@ services:
     ports:
       - "8888:80"
     depends_on:
-      - sql_server
+      sql_server:
+        condition: service_healthy  # Chờ SQL Server healthy trước khi start
     networks:
       - gym_network
     restart: unless-stopped
+
 
   # ── SQL Server Express (build từ Dockerfile.sql + start.ps1) ──────────
   sql_server:
@@ -32,6 +34,13 @@ services:
     networks:
       - gym_network
     restart: always
+    healthcheck:
+      test: ["CMD", "sqlcmd", "-S", "localhost", "-U", "sa", "-P", "Admin@123!_Gym", "-Q", "SELECT 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+
 
   # ── DB Seeder: chạy một lần để nạp dữ liệu mẫu (InitDB_Data.sql) ─────
   db_seeder:
