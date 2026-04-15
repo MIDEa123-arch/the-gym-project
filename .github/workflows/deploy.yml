@@ -186,6 +186,26 @@ jobs:
           Write-Host "SQL Server is healthy - proceeding with web_app restart."
         shell: powershell
 
+      - name: Seed database if not exists
+        run: |
+          # Check if ql_gym database already exists
+          $connStr = "Server=tcp:localhost,1433;Database=master;User Id=sa;Password=${{ secrets.SA_PASSWORD }};TrustServerCertificate=True;"
+          $conn = New-Object System.Data.SqlClient.SqlConnection($connStr)
+          $conn.Open()
+          $cmd = $conn.CreateCommand()
+          $cmd.CommandText = "SELECT COUNT(*) FROM sys.databases WHERE name = 'ql_gym'"
+          $dbExists = $cmd.ExecuteScalar()
+          $conn.Close()
+
+          if ($dbExists -eq 0) {
+            Write-Host "Database ql_gym not found - running db_seeder..."
+            docker compose up --no-deps db_seeder
+            Write-Host "Seed completed."
+          } else {
+            Write-Host "Database ql_gym already exists - skipping seed."
+          }
+        shell: powershell
+
       - name: Restart web_app only (keep sql_server to preserve data)
         run: docker compose up -d --no-deps --no-build web_app
         shell: powershell
