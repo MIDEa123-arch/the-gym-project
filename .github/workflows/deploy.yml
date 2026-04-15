@@ -185,9 +185,9 @@ jobs:
             Write-Host "HTTP Status: $statusCode"
             Write-Host "Error: $($_.Exception.Message)"
             Write-Host "--- Container logs (web_app) ---"
-            docker logs web_app --tail 30 2>&1
+            docker compose logs web_app --tail 30
             Write-Host "--- Container logs (sql_server) ---"
-            docker logs sql_server --tail 30 2>&1
+            docker compose logs sql_server --tail 30
             if ($statusCode -eq 500) {
               Write-Host "App is running but returned Runtime Error (HTTP 500) - check logs above"
               # Do not exit 1 - container is running, error may be config/DB related
@@ -203,5 +203,5 @@ jobs:
         run: |
           docker compose ps
           Write-Host "--- web_app logs ---"
-          docker logs web_app --tail 50 2>&1
+          docker compose logs web_app --tail 50
         shell: powershell
