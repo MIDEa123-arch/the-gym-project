@@ -1,0 +1,41 @@
+﻿@model QL_PHONGGYM.Models.AdminDashboardViewModel
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+<div id="dashboard-container">
+    @Html.Partial("_DashboardContent", Model)
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    function updateStatus(id, status) {
+        if (confirm('Bạn có chắc chắn muốn cập nhật trạng thái đơn hàng #' + id + ' thành: ' + status + '?')) {
+            $.ajax({
+                url: '@Url.Action("UpdateStatus", "AdminOrder")',
+                type: 'POST',
+                data: { id: id, status: status },
+                success: function (res) {
+                    if (res.success) {
+                        reloadDashboard();
+                    } else {
+                        alert(res.message);
+                    }
+                },
+                error: function () {
+                    alert("Lỗi kết nối server!");
+                }
+            });
+        }
+    }
+
+    function reloadDashboard() {
+        $.ajax({
+            url: '@Url.Action("Index", "AdminDashboard")', 
+            type: 'GET',
+            success: function (html) {
+                $('#dashboard-container').html(html);
+            }
+        });
+    }
+</script>

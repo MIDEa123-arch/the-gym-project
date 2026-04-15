@@ -1,0 +1,226 @@
+﻿@model List<QL_PHONGGYM.Models.SanPham>
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+    var categories = ViewBag.Categories as List<QL_PHONGGYM.Models.LoaiSanPham>;
+}
+
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white py-3">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0 fw-bold text-primary"><i class="fas fa-box-open me-2"></i> Danh sách sản phẩm</h5>
+            <a href="@Url.Action("Create")" class="btn btn-primary btn-sm">
+                <i class="fas fa-plus me-1"></i> Thêm mới
+            </a>
+        </div>
+        <div>
+            @using (Html.BeginForm("Index", "AdminProduct", FormMethod.Get, new { @class = "row g-3" }))
+            {
+                <div class="col-md-3">
+                    <div class="input-group">
+                        <span class="input-group-text bg-light"><i class="fas fa-search"></i></span>
+                        <input type="text" name="search" value="@ViewBag.CurrentSearch" class="form-control" placeholder="Nhập tên sản phẩm..." />
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <select name="status" class="form-select" onchange="this.form.submit()">
+                        <option value="-1" @(ViewBag.CurrentStatus == -1 ? "selected" : "")>-- Tất cả trạng thái --</option>
+                        <option value="1" @(ViewBag.CurrentStatus == 1 ? "selected" : "")>Đang kinh doanh</option>
+                        <option value="0" @(ViewBag.CurrentStatus == 0 ? "selected" : "")>Ngừng kinh doanh</option>
+                        <option value="2" @(ViewBag.CurrentStatus == 2 ? "selected" : "")>Hết hàng</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select name="category" class="form-select" onchange="this.form.submit()">
+                        <option value="-1" @(ViewBag.CurrentCategory == -1 ? "selected" : "")>-- Tất cả danh mục --</option>
+                        @if (ViewBag.loaiSanPham != null)
+                        {
+                            foreach (var cat in ViewBag.loaiSanPham)
+                            {
+                                <option value="@cat.MaLoaiSP" @(ViewBag.CurrentCategory == cat.MaLoaiSP ? "selected" : "")>
+                                    @cat.TenLoaiSP
+                                </option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-filter me-1"></i> Lọc</button>
+                    <a href="@Url.Action("Index")" class="btn btn-outline-secondary ms-1" title="Xóa bộ lọc">
+                        <i class="fas fa-sync-alt"></i>
+                    </a>
+                </div>
+            }
+        </div>
+
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">Sản phẩm</th>
+                        <th>Danh mục</th>
+                        <th>Giá bán</th>
+                        <th>Tồn kho</th>
+                        <th>Trạng thái</th>
+                        <th class="text-center pe-4">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            var img = item.HINHANHs.FirstOrDefault(h => h.IsMain == true)?.Url ?? "/Content/Images/no-image.png";
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center">
+
+                                        <img src="~/Content/Images/@img" class="rounded border" style="width: 50px; height: 50px; object-fit: cover; margin-right: 15px;">
+                                        <div>
+                                            <div class="fw-bold text-dark">@item.TenSP</div>
+                                            <small class="text-muted">Mã: #@item.MaSP</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark border">
+                                        @(item.LoaiSanPham != null ? item.LoaiSanPham.TenLoaiSP : "Chưa phân loại")
+                                    </span>
+                                </td>
+                                <td>
+                                    @if (item.GiaKhuyenMai.HasValue)
+                                    {
+                                        <div class="fw-bold text-danger">@string.Format("{0:N0}đ", item.GiaKhuyenMai)</div>
+                                        <small class="text-muted text-decoration-line-through">@string.Format("{0:N0}đ", item.DonGia)</small>
+                                    }
+                                    else
+                                    {
+                                        <div class="fw-bold text-dark">@string.Format("{0:N0}đ", item.DonGia)</div>
+                                    }
+                                </td>
+                                <td>
+                                    @if (item.SoLuongTon > 10)
+                                    {
+                                        <span class="text-success fw-bold">@item.SoLuongTon</span>
+                                    }
+                                    else if (item.SoLuongTon > 0)
+                                    {
+                                        <span class="text-warning fw-bold">@item.SoLuongTon (Sắp hết)</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-danger fw-bold">Hết hàng</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (item.SoLuongTon > 0)
+                                    {
+                                        if (item.TrangThai == 1)
+                                        {
+                                            <span class="badge bg-success">Đang bán</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">Ngừng bán</span>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">Hết hàng</span>
+                                    }
+                                </td>
+
+                                <td class="text-center pe-4">
+                                    <a href="@Url.Action("Edit", "AdminProduct", new { id = item.MaSP })" class="btn btn-outline-primary btn-sm me-1" title="Sửa">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+
+                                    @if (item.TrangThai == 1)
+                                    {
+                                        <button type="button" class="btn btn-sm btn-danger" onclick="toggleProductStatus(@item.MaSP, this)" title="Ngừng kinh doanh">
+                                            <i class="fas fa-ban"></i> Ngừng bán
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button type="button" class="btn btn-sm btn-primary" onclick="toggleProductStatus(@item.MaSP, this)" title="Mở bán lại">
+                                            <i class="fas fa-check"></i> Mở bán
+                                        </button>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center py-5 text-muted">
+                                Chưa có sản phẩm nào.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    @if (ViewBag.TotalPages > 1)
+    {
+        <div class="card-footer bg-white py-3">
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center mb-0">
+                    @if (ViewBag.CurrentPage > 1)
+                    {
+                        <li class="page-item">
+                            <a class="page-link" href="@Url.Action("Index", new { page = ViewBag.CurrentPage - 1, search = ViewBag.CurrentSearch, status = ViewBag.CurrentStatus, category = ViewBag.CurrentCategory })">Trước</a>
+                        </li>
+                    }
+
+                    @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                    {
+                        <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                            <a class="page-link" href="@Url.Action("Index", new { page = i, search = ViewBag.CurrentSearch, status = ViewBag.CurrentStatus, category = ViewBag.CurrentCategory })">@i</a>
+                        </li>
+                    }
+
+                    @if (ViewBag.CurrentPage < ViewBag.TotalPages)
+                    {
+                        <li class="page-item">
+                            <a class="page-link" href="@Url.Action("Index", new { page = ViewBag.CurrentPage + 1, search = ViewBag.CurrentSearch, status = ViewBag.CurrentStatus, category = ViewBag.CurrentCategory })">Sau</a>
+                        </li>
+                    }
+                </ul>
+            </nav>
+        </div>
+    }
+    else
+    {
+        <div class="card-footer bg-white py-3">
+            <small class="text-muted">Hiển thị @(Model != null ? Model.Count : 0) sản phẩm</small>
+        </div>
+    }
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    function toggleProductStatus(id, btn) {
+        $.ajax({
+            url: '/AdminProduct/ToggleStatus',
+            type: 'POST',
+            data: { id: id },
+            success: function (res) {
+                if (res.success) {
+                    alert(res.message);
+                    location.reload();
+                } else {
+                    alert(res.message);
+                }
+            },
+            error: function () {
+                alert("Lỗi kết nối server!");
+            }
+        });
+    }
+</script>

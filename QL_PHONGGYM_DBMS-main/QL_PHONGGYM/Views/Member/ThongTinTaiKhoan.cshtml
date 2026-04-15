@@ -1,0 +1,782 @@
+﻿@model QL_PHONGGYM.Models.KhachHang
+@{
+    ViewBag.Title = "Thông tin tài khoản";
+    Layout = "~/Views/Shared/_LayoutMember.cshtml";    
+}
+
+<style>
+    input[type="password"]::-ms-reveal,
+    input[type="password"]::-ms-clear {
+        display: none;
+
+    }
+    .cursor-pointer {
+        cursor: pointer;
+    }
+
+    .select-ellipsis {
+        /* Ép hiển thị dấu ... nếu text quá dài so với khung */
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        padding-right: 2rem; /* Chừa chỗ cho mũi tên dropdown */
+    }
+
+        /* Khi dropdown xổ xuống (option), đảm bảo hiển thị full text */
+        .select-ellipsis option {
+            white-space: normal; /* Cho phép xuống dòng hoặc hiển thị đầy đủ tùy trình duyệt */
+        }
+
+    .hide-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+
+    .hide-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+    /* The switch - the box around the slider */
+    .switch {
+        position: relative;
+        display: inline-block;
+        /* Dùng em để scale theo font-size fs-6 */
+        width: 2.25em; /* Khoảng 36px */
+        height: 1.25em; /* Khoảng 20px */
+        vertical-align: middle; /* Căn giữa dòng với text */
+        margin-bottom: 0; /* Fix lỗi margin trong một số framework */
+    }
+
+        /* Hide default HTML checkbox */
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+    /* The slider */
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc; /* Màu khi tắt */
+        -webkit-transition: .3s;
+        transition: .3s;
+    }
+
+        /* Cục tròn bên trong */
+        .slider:before {
+            position: absolute;
+            content: "";
+            /* Kích thước cục tròn nhỏ hơn khung 1 xíu */
+            height: 1em;
+            width: 1em;
+            left: 0.125em; /* Canh lề trái */
+            bottom: 0.125em; /* Canh lề dưới */
+            background-color: white;
+            -webkit-transition: .3s;
+            transition: .3s;
+        }
+
+    /* Màu khi bật (Checked) */
+    input:checked + .slider {
+        background-color: #2196F3; /* Xanh dương */
+        /* background-color: #198754; */ /* Hoặc dùng màu xanh lá (success) */
+    }
+
+    input:focus + .slider {
+        box-shadow: 0 0 1px #2196F3;
+    }
+
+    /* Di chuyển cục tròn khi bật */
+    input:checked + .slider:before {
+        -webkit-transform: translateX(1em);
+        -ms-transform: translateX(1em);
+        transform: translateX(1em);
+    }
+
+    /* Rounded sliders */
+    .slider.round {
+        border-radius: 2em; /* Bo tròn theo tỷ lệ */
+    }
+
+        .slider.round:before {
+            border-radius: 50%;
+        }
+</style>
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i>
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+
+<div class="rounded-2 p-4 bg-white">
+    <div class="d-flex justify-content-between w-100 align-items-center mb-3">
+        <span class="fs-5 fw-bold">Thông tin cá nhân</span>
+        <button class="text-decoration-none text-info small d-flex align-items-center gap-1 bg-transparent border-0" data-bs-toggle="modal" data-bs-target="#updateInfo">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
+                <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z" />
+                <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z" />
+            </svg>
+            Cập nhật
+        </button>
+    </div>
+    <div class="w-100 d-flex p-0 gap-5">
+        <div class="w-50 d-flex flex-column ">
+            <div class="d-flex justify-content-between boder border-bottom border-1 py-3" style="border-color: #dddddd">
+                <span class="text-muted small">Họ và tên</span>
+                <span class="fw-bold small">@Model.TenKH</span>
+            </div>
+            <div class="d-flex justify-content-between boder border-bottom border-1 py-3" style="border-color: #dddddd">
+                <span class="text-muted small">Giới tính</span>
+                <span class="fw-bold small">@Model.GioiTinh</span>
+            </div>
+            <div class="d-flex justify-content-between boder border-bottom border-1 py-3" style="border-color: #dddddd">
+                <span class="text-muted small">Ngày sinh</span>
+                <span class="fw-bold small">@(Model.NgaySinh.HasValue ? Model.NgaySinh.Value.ToString("dd/MM/yyyy") : "Chưa cập nhật")</span>
+            </div>
+        </div>
+        <div class="w-50 d-flex flex-column ">
+            <div class="d-flex justify-content-between boder border-bottom border-1 py-3" style="border-color: #dddddd">
+                <span class="text-muted small">Số điện thoại</span>
+                <span class="fw-bold small">@Model.SDT</span>
+            </div>
+            <div class="d-flex justify-content-between boder border-bottom border-1 py-3" style="border-color: #dddddd">
+                <span class="text-muted small">Email</span>
+                <span class="fw-bold small">@Model.Email</span>
+            </div>
+            <div class="d-flex justify-content-between boder border-bottom border-1 py-3" style="border-color: #dddddd">
+                <span class="text-muted small text-break">Địa chỉ mặc định</span>
+                <span class="fw-bold small">@ViewBag.diaChiHienThi</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="rounded-2 p-4 bg-white mt-3">
+    <div class="d-flex justify-content-between w-100 align-items-center mb-3">
+        <span class="fs-5 fw-bold">Sổ địa chỉ</span>
+        <button class="text-decoration-none text-info small border-0 bg-transparent" data-bs-toggle="modal" data-bs-target="#addAddress">+ Thêm địa chỉ</button>
+    </div>
+
+    <div class="row g-3">
+        @foreach (var item in Model.DiaChis.Where(dc => dc.MaKH == (int)Session["MaKH"]).OrderByDescending(dc => dc.LaDiaChiMacDinh))
+        {
+            <div class="col-12 col-md-6">
+                <div class="p-3 rounded-2 h-100 d-flex flex-column" style="background-color: #f8f9fa;">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div class="d-flex flex-column flex-xl-row">
+                            <span class="fw-bold text-dark pe-3 border-2 py-0 border-end">@Model.TenKH</span>
+                            <span class="text-dark ps-3">@Model.SDT</span>
+                        </div>
+
+                        <div class="d-flex gap-1 align-items-center">
+                            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle d-flex align-items-center gap-1">
+                                <i class="fa fa-home"></i> Nhà
+                            </span>
+                            @if (item.LaDiaChiMacDinh == true)
+                            {
+                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle">Mặc định</span>
+                            }
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <span class="text-secondary small text-break">
+                            @(string.Join(", ", new[] { item.DiaChiCuThe, item.PhuongXa, item.QuanHuyen, item.TinhThanhPho }.Where(x => !string.IsNullOrWhiteSpace(x))))
+                        </span>
+                    </div>
+                    <div class="d-flex justify-content-end gap-3 mt-auto">
+                        <button class="text-decoration-none text-danger small bg-transparent border-0 " data-bs-toggle="modal" data-bs-target="#areYouSure-@item.MaDC">Xóa</button>
+
+                        <div class="modal fade" id="areYouSure-@item.MaDC" tabindex="-1" aria-labelledby="areYouSureModel" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content rounded-4 mx-auto shadow-lg border-0 position-relative" style="width: 80%">
+                                    <div class="mt-3 border-0 text-center w-100">
+                                        <h5 class="modal-title fw-bold text-primary text-center">Xóa địa chỉ</h5>
+                                    </div>
+                                    <div class="modal-body text-center py-2">
+                                        <p class="mb-4 small text-muted" style="font-size: 16px">
+                                            Bạn có chắc chắn muốn xoá địa chỉ
+                                        </p>
+                                        <div class="d-flex justify-content-center gap-3 mb-1">
+                                            <a href="@Url.Action("XoaDiaChi", "Member", new { id = item.MaDC })" class="btn btn-outline-secondary py-2 fw-semibold small" style="width: 10rem">
+                                                Xóa địa chỉ
+                                            </a>
+                                            <button type="button" class="btn btn-primary py-2 fw-semibold small" data-bs-dismiss="modal" style="width: 10rem">
+                                                Suy nghĩ lại
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="text-decoration-none text-info small border-0 bg-transparent btn-edit-address"
+                                data-bs-toggle="modal"
+                                data-bs-target="#updateAddress"
+                                data-id="@item.MaDC"
+                                data-tinh="@item.TinhThanhPho"
+                                data-huyen="@item.QuanHuyen"
+                                data-xa="@item.PhuongXa"
+                                data-chitiet="@item.DiaChiCuThe"
+                                data-macdinh="@(item.LaDiaChiMacDinh == true ? "true" : "false")">
+                            Cập nhật
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+<div class="rounded-2 p-4 bg-white mt-3">
+    <div class="d-flex justify-content-between w-100 align-items-center">
+        <span class="fs-5 fw-bold">Mật khẩu</span>
+        <button class="text-decoration-none text-info small d-flex align-items-center gap-1 bg-transparent border-0" data-bs-toggle="modal" data-bs-target="#updatePass">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
+                <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z" />
+                <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z" />
+            </svg>
+            Thay đổi mật khẩu
+        </button>
+    </div>
+</div>
+
+<div class="modal fade" id="updatePass" tabindex="-1" aria-labelledby="updatePassModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable ms-auto me-3 my-3 w-100"
+         style="max-width: 550px; height: calc(100% - 2rem);">
+
+        @using (Html.BeginForm("DoiMatKhau", "Member", FormMethod.Post, new { @class = "modal-content h-100 rounded-4 shadow-lg border-0 position-relative" }))
+        {
+            @Html.AntiForgeryToken()
+
+            <div class="modal-body p-0 d-flex flex-column hide-scrollbar">
+
+                <div class="fw-bold fs-6 border-bottom border-1 p-3 mb-3 position-sticky top-0 bg-white"
+                     style="border-color: #e2e2e2; z-index: 100;">
+                    Đổi mật khẩu
+                </div>
+
+                <div class="px-4 pb-4 h-100 d-flex flex-column justify-content-between">
+                    <div class="d-flex flex-column">
+
+                        <div class="d-flex flex-column mb-3">
+                            <label class="fs-6 mb-2">Mật khẩu hiện tại <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                @Html.Password("CurrentMatKhau", null, new { @class = "form-control px-3 py-2", required = "required", placeholder = "Nhập mật khẩu cũ", id = "currentPass" })
+                                <span class="input-group-text bg-white cursor-pointer toggle-password" data-target="#currentPass">
+                                    <i class="bi bi-eye-slash"></i>
+                                </span>
+                            </div>
+                            @Html.ValidationMessage("CurrentMatKhau", "", new { @class = "text-danger small mt-1 fw-bold", style = "font-size: 12px;" })
+                        </div>
+
+                        <div class="d-flex flex-column mb-3">
+                            <label class="fs-6 mb-2">Mật khẩu mới <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                @Html.Password("MatKhau", null, new { @class = "form-control px-3 py-2", required = "required", placeholder = "Nhập mật khẩu mới", id = "newPass" })
+                                <span class="input-group-text bg-white cursor-pointer toggle-password" data-target="#newPass">
+                                    <i class="bi bi-eye-slash"></i>
+                                </span>
+                            </div>
+
+                            @Html.ValidationMessage("MatKhau", "", new { @class = "text-danger small mt-1 fw-bold", style = "font-size: 12px;" })
+
+                            <small id="msg-newPass" class="text-danger mt-1 fw-bold" style="display:none; font-size: 12px;"></small>
+                        </div>
+
+                        <div class="d-flex flex-column mb-3">
+                            <label class="fs-6 mb-2">Xác nhận mật khẩu mới <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                @Html.Password("XacNhanMatKhau", null, new { @class = "form-control px-3 py-2", required = "required", placeholder = "Nhập lại mật khẩu mới", id = "confirmPass" })
+                                <span class="input-group-text bg-white cursor-pointer toggle-password" data-target="#confirmPass">
+                                    <i class="bi bi-eye-slash"></i>
+                                </span>
+                            </div>
+
+                            @Html.ValidationMessage("XacNhanMatKhau", "", new { @class = "text-danger small mt-1 fw-bold", style = "font-size: 12px;" })
+
+                            <small id="msg-confirmPass" class="text-danger mt-1 fw-bold" style="display:none; font-size: 12px;"></small>
+                        </div>
+
+                    </div>
+
+                    <div class="mt-4 text-center">
+                        <button type="submit" id="btnSavePass" class="btn btn-primary w-100 py-2 fw-bold">Lưu thay đổi</button>
+                    </div>
+                </div>
+            </div>
+
+            <button type="button" class="btn-close position-absolute mt-3 me-3" data-bs-dismiss="modal" style="right: 0; top: 0; z-index: 105; font-size: 11px" aria-label="Đóng"></button>
+        }
+    </div>
+</div>
+
+<div class="modal fade" id="updateInfo" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable ms-auto me-3 my-3 w-100"
+         style="max-width: 550px; height: calc(100% - 2rem);">
+
+        @using (Html.BeginForm("CapNhatThongTin", "Member", FormMethod.Post, new { @class = "modal-content h-100 rounded-4 shadow-lg border-0 position-relative" }))
+        {
+            @Html.AntiForgeryToken()
+            @Html.HiddenFor(m => m.MaKH)
+
+            <div class="modal-body p-0 d-flex flex-column hide-scrollbar">
+
+                <div class="fw-bold fs-6 border-bottom border-1 p-3 mb-3 position-sticky top-0 bg-white"
+                     style="border-color: #e2e2e2; z-index: 100;">
+                    Cập nhật thông tin cá nhân
+                </div>
+
+                <div class="px-4 pb-4 h-100 d-flex flex-column justify-content-between">
+                    <div class="d-flex flex-column">
+                        <div class="d-flex flex-column mb-3">
+                            <label class="fs-6 mb-2">Họ và tên </label>
+                            @Html.TextBoxFor(m => m.TenKH, new { @class = "px-3 py-2 w-100 form-control", required = "required" })
+                        </div>
+
+                        <div class="d-flex flex-column mb-3">
+                            <label class="fs-6 mb-2">Giới tính </label>
+                            @{ Model.GioiTinh = Model.GioiTinh?.Trim(); }
+                            @Html.DropDownListFor(model => model.GioiTinh, new List<SelectListItem>
+                                    {
+                                new SelectListItem { Text = "Nam", Value = "Nam" },
+                                new SelectListItem { Text = "Nữ", Value = "Nữ" }
+                            }, new { @class = "form-select px-3 py-2 w-100", @id = "GioiTinh" })
+                        </div>
+
+                        <div class="d-flex flex-column mb-3">
+                            <label class="fs-6 mb-2">Ngày sinh</label>
+                            <input type="date"
+                                   class="form-control px-3 py-2 w-100"
+                                   name="NgaySinh"
+                                   onclick="this.showPicker()"
+                                   value="@(Model.NgaySinh.HasValue ? Model.NgaySinh.Value.ToString("yyyy-MM-dd") : "")" />
+                        </div>
+
+                        <div class="d-flex flex-column mb-3">
+                            <label class="fs-6 mb-2">Số điện thoại</label>
+                            @Html.TextBoxFor(m => m.SDT, new { @class = "px-3 py-2 w-100 form-control", required = "required" })
+                        </div>
+
+                        <div class="d-flex flex-column mb-3">
+                            <label class="fs-6 mb-2">Email</label>
+                            @Html.TextBoxFor(m => m.Email, new { @class = "px-3 py-2 w-100 form-control", required = "required" })
+                        </div>
+                        @{
+                            var listDrop = ViewBag.ListDiaChiDropdown as IEnumerable<SelectListItem>;
+                        }
+
+                        @if (listDrop != null && listDrop.Any())
+                        {
+                            <div class="d-flex flex-column mb-3">
+                                <label class="fs-6 mb-2">Địa chỉ mặc định<span class="text-danger"> *</span></label>
+                                @Html.DropDownList("MaDC",
+                                    ViewBag.ListDiaChiDropdown as IEnumerable<SelectListItem>,
+                                    new { @class = "form-select ps-3 py-2 w-100 select-ellipsis pe-5", required = "required", })
+                            </div>
+                        }
+                    </div>
+                    <div class="mt-4 text-center">
+                        <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">Cập nhật thông tin</button>
+                    </div>
+                </div>
+            </div>
+
+            <button type="button" class="btn-close position-absolute mt-3 me-3" data-bs-dismiss="modal" style="right: 0; top: 0; z-index: 105; font-size: 11px" aria-label="Đóng"></button>
+        }
+    </div>
+</div>
+
+<div class="modal fade" id="addAddress" tabindex="-1" aria-labelledby="addAddressModal" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable ms-auto me-3 my-3 w-100"
+         style="max-width: 550px; height: calc(100% - 2rem);">
+        @using (Html.BeginForm("ThemDiaChi", "Member", FormMethod.Post, new { @class = "modal-content h-100 rounded-4 shadow-lg border-0 position-relative" }))
+        {
+            @Html.AntiForgeryToken()
+            <input type="number" name="MaKH" value="@Model.MaKH" hidden/>
+
+            <div class="modal-body p-0 d-flex flex-column hide-scrollbar">
+
+                <div class="fw-bold fs-6 border-bottom border-1 p-3 mb-3 position-sticky top-0 bg-white"
+                     style="border-color: #e2e2e2; z-index: 100;">
+                    Thêm địa chỉ
+                </div>
+                <div class="mb-3 fw-bold small px-4">Địa chỉ nhận hàng</div>
+                <div class="px-4 pb-4 h-100 d-flex flex-column justify-content-between">
+                    <div class="d-flex flex-column">
+                        <div class="d-flex flex-column mb-3">
+                            <label class="fs-6 mb-2">Tỉnh/Thành phố </label>
+                            <select class="form-select px-3 py-2 w-100" id="province" name="TinhThanhPho" required>
+                                <option value="" disabled selected>Chọn Tỉnh/Thành phố</option>
+                            </select>
+                        </div>
+
+                        <div class="d-flex flex-column mb-3">
+                            <label class="fs-6 mb-2">Quận/Huyện</label>
+                            <select class="form-select px-3 py-2 w-100" id="district" name="QuanHuyen" required disabled>
+                                <option value="" disabled selected>Chọn Quận/Huyện</option>
+                            </select>
+                        </div>
+
+                        <div class="d-flex flex-column mb-3">
+                            <label class="fs-6 mb-2">Phường/Xã</label>
+                            <select class="form-select px-3 py-2 w-100" id="ward" name="PhuongXa" required disabled>
+                                <option value="" disabled selected>Chọn Phường/Xã</option>
+                            </select>
+                        </div>
+
+                        <div class="d-flex flex-column mb-3">
+                            <label class="fs-6 mb-2">Địa chỉ nhà</label>
+                            <input type="text" class="form-control  px-3 py-2 w-100" name="DiaChiCuThe" required placeholder="Nhập địa chỉ nhà" />
+                        </div>
+                        <div class="d-flex gap-2 align-items-center py-3 mt-1" style="border-top: 2px dotted #dedcdc">
+                            <span class="fs-6 fw-bold">Đặt làm mặc định</span>
+                            <!-- Rounded switch -->
+                            <label class="switch">
+                                <input type="checkbox" value="1" name="isDefault">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 text-center">
+                        <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">Thêm địa chỉ</button>
+                    </div>
+                </div>
+                <button type="button" class="btn-close position-absolute mt-3 me-3" data-bs-dismiss="modal" style="right: 0; top: 0; z-index: 105; font-size: 11px" aria-label="Đóng"></button>
+            </div>
+        }
+    </div>
+</div>
+
+<div class="modal fade" id="updateAddress" tabindex="-1" aria-labelledby="updateAddressModal" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable ms-auto me-3 my-3 w-100" style="max-width: 550px; height: calc(100% - 2rem);">
+        @using (Html.BeginForm("CapNhatDiaChi", "Member", FormMethod.Post, new { @class = "modal-content h-100 rounded-4 shadow-lg border-0 position-relative" }))
+        {
+            @Html.AntiForgeryToken()
+            <input type="hidden" id="update_MaDC" name="MaDC" />
+
+            <div class="modal-body p-0 d-flex flex-column hide-scrollbar">
+                <div class="fw-bold fs-6 border-bottom border-1 p-3 mb-3 position-sticky top-0 bg-white" style="border-color: #e2e2e2; z-index: 100;">
+                    Cập nhật địa chỉ
+                </div>
+                <div class="mb-3 fw-bold small px-4">Địa chỉ nhận hàng</div>
+                <div class="px-4 pb-4 h-100 d-flex flex-column justify-content-between">
+                    <div class="d-flex flex-column">
+                        <div class="d-flex flex-column mb-3">
+                            <label class="fs-6 mb-2">Tỉnh/Thành phố </label>
+                            <select class="form-select px-3 py-2 w-100" id="update_province" name="TinhThanhPho" required>
+                                <option value="" disabled selected>Chọn Tỉnh/Thành phố</option>
+                            </select>
+                        </div>
+
+                        <div class="d-flex flex-column mb-3">
+                            <label class="fs-6 mb-2">Quận/Huyện</label>
+                            <select class="form-select px-3 py-2 w-100" id="update_district" name="QuanHuyen" required disabled>
+                                <option value="" disabled selected>Chọn Quận/Huyện</option>
+                            </select>
+                        </div>
+
+                        <div class="d-flex flex-column mb-3">
+                            <label class="fs-6 mb-2">Phường/Xã</label>
+                            <select class="form-select px-3 py-2 w-100" id="update_ward" name="PhuongXa" required disabled>
+                                <option value="" disabled selected>Chọn Phường/Xã</option>
+                            </select>
+                        </div>
+
+                        <div class="d-flex flex-column mb-3">
+                            <label class="fs-6 mb-2">Địa chỉ nhà</label>
+                            <input type="text" class="form-control px-3 py-2 w-100" id="update_addressDetail" name="DiaChiCuThe" required placeholder="Nhập địa chỉ nhà" />
+                        </div>
+                        <div class="d-flex gap-2 align-items-center py-3 mt-1" style="border-top: 2px dotted #dedcdc">
+                            <span class="fs-6 fw-bold">Đặt làm mặc định</span>
+                            <label class="switch">
+                                <input type="checkbox" value="1" id="update_isDefault" name="isDefault">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 text-center d-flex gap-3">
+                        <button type="button" id="btn-delete-trigger" class="btn btn-outline-secondary w-100 py-2 fw-bold">
+                            Xóa địa chỉ
+                        </button>
+
+                        <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">Cập nhật địa chỉ</button>
+                    </div>
+                </div>
+                <button type="button" class="btn-close position-absolute mt-3 me-3" data-bs-dismiss="modal" style="right: 0; top: 0; z-index: 105; font-size: 11px" aria-label="Đóng"></button>
+            </div>
+        }
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    const API_BASE_URL = 'https://provinces.open-api.vn/api';
+
+    $(document).on('click', '.toggle-password', function () {
+        // 1. Lấy id của input mục tiêu từ attribute data-target
+        var targetSelector = $(this).data('target');
+        var $input = $(targetSelector);
+        var $icon = $(this).find('i');
+
+        // 2. Kiểm tra type hiện tại và đảo ngược
+        if ($input.attr('type') === 'password') {
+            $input.attr('type', 'text');
+            // Đổi icon sang mắt mở
+            $icon.removeClass('bi-eye-slash').addClass('bi-eye');
+        } else {
+            $input.attr('type', 'password');
+            // Đổi icon sang mắt đóng (gạch chéo)
+            $icon.removeClass('bi-eye').addClass('bi-eye-slash');
+        }
+    });
+
+    $(document).ready(function () {
+
+        // Vừa gõ vừa kiểm tra ô Mật khẩu mới
+        $('#newPass').on('input', function () {
+            validatePasswordForm();
+        });
+
+        // Vừa gõ vừa kiểm tra ô Xác nhận
+        $('#confirmPass').on('input', function () {
+            validatePasswordForm();
+        });
+
+        function validatePasswordForm() {
+            var newPass = $('#newPass').val();
+            var confirmPass = $('#confirmPass').val();
+
+            var $msgLen = $('#msg-newPass');
+            var $msgMatch = $('#msg-confirmPass');
+            var $btn = $('#btnSavePass');
+
+            var isValidLength = true;
+            var isValidMatch = true;
+
+            // 1. Kiểm tra độ dài (>= 6 ký tự)
+            if (newPass.length > 0 && newPass.length < 6) {
+                $msgLen.text('Mật khẩu phải có ít nhất 6 ký tự').show();
+                isValidLength = false;
+            } else {
+                $msgLen.hide();
+            }
+
+            // 2. Kiểm tra khớp mật khẩu
+            if (confirmPass.length > 0) {
+                if (newPass !== confirmPass) {
+                    $msgMatch.text('Mật khẩu xác nhận không trùng khớp').show();
+                    isValidMatch = false;
+                } else {
+                    $msgMatch.hide();
+                }
+            } else {
+                $msgMatch.hide();
+                // Nếu ô xác nhận rỗng thì cũng chưa cho lưu
+                if (newPass.length > 0) isValidMatch = false;
+            }
+
+            // 3. Quyết định mở/khóa nút Lưu
+            if (newPass.length >= 6 && confirmPass.length > 0 && isValidLength && isValidMatch) {
+                $btn.prop('disabled', false);
+            } else {
+                $btn.prop('disabled', true);
+            }
+        }
+    });
+
+    // Biến toàn cục cache dữ liệu
+    let globalProvinces = [];
+    let currentAddDistricts = [];    // Cache huyện cho modal Thêm
+    let currentUpdateDistricts = []; // Cache huyện cho modal Sửa
+
+    document.addEventListener('DOMContentLoaded', async function () {
+        // 1. Tải dữ liệu Tỉnh/Thành ban đầu
+        await loadProvincesInit();
+
+        // 2. Cài đặt sự kiện cho các Modal
+        setupAddModalListeners();       // Logic dropdown cho modal Thêm
+        setupUpdateModalListeners();    // Logic dropdown cho modal Sửa
+
+        // 3. Cài đặt sự kiện cho các Nút bấm
+        setupEditButtons();             // Nút "Cập nhật" (Mở modal & điền dữ liệu)
+        setupDeleteButtonInModal();     // Nút "Xóa" bên trong modal Cập nhật
+    });
+    
+    async function loadProvincesInit() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/p/`);
+            globalProvinces = await response.json();
+
+            // Fill cho cả 2 modal
+            fillSelect('province', globalProvinces, 'Chọn Tỉnh/Thành phố');
+            fillSelect('update_province', globalProvinces, 'Chọn Tỉnh/Thành phố');
+        } catch (error) {
+            console.error('Lỗi tải tỉnh:', error);
+        }
+    }
+
+    function fillSelect(elementId, data, defaultText) {
+        const select = document.getElementById(elementId);
+        if (!select) return;
+        select.innerHTML = `<option value="" disabled selected>${defaultText}</option>`;
+        data.forEach(item => {
+            // Xử lý tên hiển thị cho đẹp
+            let name = item.name.replace(/(Tỉnh |Thành phố |Quận |Huyện |Thị xã |Phường |Xã |Thị trấn )/g, "");
+
+            const option = document.createElement('option');
+            option.value = name;
+            option.textContent = name;
+            option.dataset.code = item.code;
+            select.appendChild(option);
+        });
+    }
+    
+    async function fetchDistricts(provinceName) {
+        // Tìm code dựa trên tên (đã xử lý text) - Lưu ý: logic tìm kiếm này cần khớp với data
+        // Cách an toàn nhất là tìm trong globalProvinces cái nào có tên chứa chuỗi này
+        const prov = globalProvinces.find(p => p.name.includes(provinceName));
+        if (!prov) return [];
+
+        const response = await fetch(`${API_BASE_URL}/p/${prov.code}?depth=2`);
+        const data = await response.json();
+        return data.districts;
+    }
+
+    async function fetchWards(districtName, currentDistrictsList) {
+        const dist = currentDistrictsList.find(d => d.name.includes(districtName));
+        if (!dist) return [];
+
+        const response = await fetch(`${API_BASE_URL}/d/${dist.code}?depth=2`);
+        const data = await response.json();
+        return data.wards;
+    }
+
+    // --- 3. LOGIC MODAL THÊM MỚI ---
+    function setupAddModalListeners() {
+        const pSelect = document.getElementById('province');
+        const dSelect = document.getElementById('district');
+        const wSelect = document.getElementById('ward');
+
+        pSelect.addEventListener('change', async function () {
+            dSelect.innerHTML = '<option>Đang tải...</option>'; dSelect.disabled = true;
+            wSelect.innerHTML = '<option>Chọn Phường/Xã</option>'; wSelect.disabled = true;
+
+            currentAddDistricts = await fetchDistricts(this.value);
+            fillSelect('district', currentAddDistricts, 'Chọn Quận/Huyện');
+            dSelect.disabled = false;
+        });
+
+        dSelect.addEventListener('change', async function () {
+            wSelect.innerHTML = '<option>Đang tải...</option>'; wSelect.disabled = true;
+            const wards = await fetchWards(this.value, currentAddDistricts);
+            fillSelect('ward', wards, 'Chọn Phường/Xã');
+            wSelect.disabled = false;
+        });
+    }
+
+    // --- 4. LOGIC MODAL CẬP NHẬT ---
+    function setupUpdateModalListeners() {
+        const pSelect = document.getElementById('update_province');
+        const dSelect = document.getElementById('update_district');
+        const wSelect = document.getElementById('update_ward');
+
+        pSelect.addEventListener('change', async function () {
+            dSelect.innerHTML = '<option>Đang tải...</option>'; dSelect.disabled = true;
+            wSelect.innerHTML = '<option>Chọn Phường/Xã</option>'; wSelect.disabled = true;
+
+            currentUpdateDistricts = await fetchDistricts(this.value);
+            fillSelect('update_district', currentUpdateDistricts, 'Chọn Quận/Huyện');
+            dSelect.disabled = false;
+        });
+
+        dSelect.addEventListener('change', async function () {
+            wSelect.innerHTML = '<option>Đang tải...</option>'; wSelect.disabled = true;
+            const wards = await fetchWards(this.value, currentUpdateDistricts);
+            fillSelect('update_ward', wards, 'Chọn Phường/Xã');
+            wSelect.disabled = false;
+        });
+    }
+
+    // --- 5. LOGIC FILL DỮ LIỆU VÀO MODAL CẬP NHẬT ---
+    function setupEditButtons() {
+        const btns = document.querySelectorAll('.btn-edit-address');
+        btns.forEach(btn => {
+            btn.addEventListener('click', async function () {
+                // Lấy data
+                const { id, tinh, huyen, xa, chitiet, macdinh } = this.dataset;
+
+                // Điền info cơ bản
+                document.getElementById('update_MaDC').value = id;
+                document.getElementById('update_addressDetail').value = chitiet;
+                document.getElementById('update_isDefault').checked = (macdinh === 'true');
+
+                // Điền Tỉnh -> Trigger load Huyện
+                const pSelect = document.getElementById('update_province');
+                pSelect.value = tinh;
+
+                if (tinh) {
+                    const dSelect = document.getElementById('update_district');
+                    dSelect.innerHTML = '<option>Đang tải...</option>';
+
+                    currentUpdateDistricts = await fetchDistricts(tinh);
+                    fillSelect('update_district', currentUpdateDistricts, 'Chọn Quận/Huyện');
+                    dSelect.disabled = false;
+                    dSelect.value = huyen;
+
+                    // Điền Huyện -> Trigger load Xã
+                    if (huyen) {
+                        const wSelect = document.getElementById('update_ward');
+                        wSelect.innerHTML = '<option>Đang tải...</option>';
+
+                        const wards = await fetchWards(huyen, currentUpdateDistricts);
+                        fillSelect('update_ward', wards, 'Chọn Phường/Xã');
+                        wSelect.disabled = false;
+                        wSelect.value = xa;
+                    }
+                }
+            });
+        });
+    }
+
+    // --- 6. LOGIC CHUYỂN TỪ MODAL CẬP NHẬT SANG XÓA ---
+    function setupDeleteButtonInModal() {
+        const btnDeleteTrigger = document.getElementById('btn-delete-trigger');
+        if (btnDeleteTrigger) {
+            btnDeleteTrigger.addEventListener('click', function () {
+                // 1. Lấy ID đang sửa
+                const currentId = document.getElementById('update_MaDC').value;
+                if (!currentId) return;
+
+                // 2. Đóng modal Cập nhật
+                const updateModalEl = document.getElementById('updateAddress');
+                const updateModalInstance = bootstrap.Modal.getInstance(updateModalEl);
+                if (updateModalInstance) updateModalInstance.hide();
+
+                // 3. Mở modal Xác nhận xóa tương ứng
+                const confirmModalEl = document.getElementById('areYouSure-' + currentId);
+                if (confirmModalEl) {
+                    const confirmModalInstance = new bootstrap.Modal(confirmModalEl);
+                    confirmModalInstance.show();
+                }
+            });
+        }
+    }
+</script>

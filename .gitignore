@@ -1,0 +1,100 @@
+# ============================================================
+# .gitignore – Gym Management System (ASP.NET MVC + Docker)
+# ============================================================
+
+# ── Visual Studio / Build artifacts ──────────────────────────
+[Bb]in/
+[Oo]bj/
+*.user
+*.suo
+*.userosscache
+*.sln.docview
+*.userprefs
+.vs/
+_UpgradeReport_Files/
+Backup*/
+UpgradeLog*.XML
+UpgradeLog*.htm
+ServiceFabricBackup/
+*.rptproj.rsuser
+
+# ── Publish output (mặc định ignore) ─────────────────────────
+# Thường các thư mục publish được ignore,
+# NHƯNG Web_Publish/ cần được push lên để Docker build (xem exception bên dưới)
+publish/
+PublishScripts/
+*_publish/
+
+# Bắt buộc cho phép đẩy thư mục Web_Publish lên
+# (Docker image web_app COPY từ thư mục này)
+!Web_Publish/
+!Web_Publish/**
+
+# ── NuGet ────────────────────────────────────────────────────
+*.nupkg
+*.snupkg
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+*.nuget.props
+*.nuget.targets
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# ── Roslyn cache ─────────────────────────────────────────────
+*.ide
+
+# ── Test results ─────────────────────────────────────────────
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+TestResult.xml
+*.trx
+[Ll]og/
+[Ll]ogs/
+
+# ── Log files ────────────────────────────────────────────────
+*.log
+
+# ── Môi trường / Bảo mật ─────────────────────────────────────
+.env
+.env.local
+.env.production
+*.pfx
+*.p12
+secrets/
+
+# ── Docker ───────────────────────────────────────────────────
+# KHÔNG ignore Dockerfile, docker-compose.yml, start.ps1
+# (tất cả đều cần thiết cho CI/CD)
+
+# ── Windows ──────────────────────────────────────────────────
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# ── macOS (nếu có người dùng Mac trong team) ─────────────────
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# ── JetBrains / Rider ────────────────────────────────────────
+.idea/
+*.iml
+
+# ── VSCode ───────────────────────────────────────────────────
+.vscode/
+!.vscode/extensions.json
+
+# ── SQL backup files ─────────────────────────────────────────
+*.bak
+*.mdf
+*.ldf
+
+# ── Node (nếu dùng npm/webpack trong frontend) ───────────────
+node_modules/
+npm-debug.log*
+
+# ── Crash dumps ──────────────────────────────────────────────
+*.dmp

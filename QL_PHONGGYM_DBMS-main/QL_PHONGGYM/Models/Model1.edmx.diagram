@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+ <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <!-- Diagram content (shape and connector positions) -->
+    <edmx:Diagrams>
+      <Diagram DiagramId="db090284b84a48c9bdc2f5c0a8cffd9b" Name="Diagram1" ZoomLevel="28">
+        <EntityTypeShape EntityType="qlgymModel.ChiTietGioHang" Width="1.5" PointX="5.25" PointY="17.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="qlgymModel.ChiTietHoaDon" Width="1.5" PointX="10.5" PointY="13.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="qlgymModel.ChucVu" Width="1.5" PointX="1.5" PointY="5" IsExpanded="true" />
+        <EntityTypeShape EntityType="qlgymModel.ChuyenMon" Width="1.5" PointX="3.75" PointY="1.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="qlgymModel.DangKyGoiTap" Width="1.5" PointX="8.25" PointY="15" IsExpanded="true" />
+        <EntityTypeShape EntityType="qlgymModel.DangKyLop" Width="1.5" PointX="8.25" PointY="11.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="qlgymModel.DangKyPT" Width="1.5" PointX="8.25" PointY="18.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="qlgymModel.DiaChi" Width="1.5" PointX="5.25" PointY="30.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="qlgymModel.DonHang" Width="1.5" PointX="3" PointY="9.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="qlgymModel.GoiTap" Width="1.5" PointX="6" PointY="25.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="qlgymModel.HINHANH" Width="1.5" PointX="10.5" PointY="35.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="qlgymModel.HoaDon" Width="1.5" PointX="5.25" PointY="8.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="qlgymModel.KhachHang" Width="1.5" PointX="3" PointY="14.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="qlgymModel.LichLop" Width="1.5" PointX="8.25" PointY="3.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="qlgymModel.LichTapPT" Width="1.5" PointX="10.5" PointY="19.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="qlgymModel.LoaiKhachHang" Width="1.5" PointX="0.75" PointY="15.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="qlgymModel.LoaiSanPham" Width="1.5" PointX="6" PointY="35.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="qlgymModel.LopHoc" Width="1.5" PointX="6" PointY="2.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="qlgymModel.NhanVien" Width="1.5" PointX="3.75" PointY="3.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="qlgymModel.SanPham" Width="1.5" PointX="8.25" PointY="34.5" IsExpanded="true" />
+        <AssociationConnector Association="qlgymModel.FK_ChiTietGioHang_KhachHang" ManuallyRouted="false" />
+        <AssociationConnector Association="qlgymModel.FK_GioHang_SanPham_LoggedIn" ManuallyRouted="false" />
+        <AssociationConnector Association="qlgymModel.FK_CT_HD" ManuallyRouted="false" />
+        <AssociationConnector Association="qlgymModel.FK_CT_HD_DKGT" ManuallyRouted="false" />
+        <AssociationConnector Association="qlgymModel.FK_CT_HD_DKLop" ManuallyRouted="false" />
+        <AssociationConnector Association="qlgymModel.FK_CT_HD_DKPT" ManuallyRouted="false" />
+        <AssociationConnector Association="qlgymModel.FK_CT_SP" ManuallyRouted="false" />
+        <AssociationConnector Association="qlgymModel.FK_NhanVien_ChucVu" ManuallyRouted="false" />
+        <AssociationConnector Association="qlgymModel.FK_Lop_CM" ManuallyRouted="false" />
+        <AssociationConnector Association="qlgymModel.FK_DKGT_GT" ManuallyRouted="false" />
+        <AssociationConnector Association="qlgymModel.FK_DKGT_KH" ManuallyRouted="false" />
+        <AssociationConnector Association="qlgymModel.FK_DKLop_KH" ManuallyRouted="false" />
+        <AssociationConnector Association="qlgymModel.FK_DKLop_Lop" ManuallyRouted="false" />
+        <AssociationConnector Association="qlgymModel.FK_DKPT_KH" ManuallyRouted="false" />
+        <AssociationConnector Association="qlgymModel.FK_DKPT_NV" ManuallyRouted="false" />
+        <AssociationConnector Association="qlgymModel.FK_LichPT_DKPT" ManuallyRouted="false" />
+        <AssociationConnector Association="qlgymModel.FK_DiaChi_KhachHang" ManuallyRouted="false" />
+        <AssociationConnector Association="qlgymModel.FK_HoaDon_DonHang" ManuallyRouted="false" />
+        <AssociationConnector Association="qlgymModel.FK_HinhAnh_SanPham" ManuallyRouted="false" />
+        <AssociationConnector Association="qlgymModel.FK_HoaDon_KH" ManuallyRouted="false" />
+        <AssociationConnector Association="qlgymModel.FK_KhachHang_LoaiKH" ManuallyRouted="false" />
+        <AssociationConnector Association="qlgymModel.FK_LichLop_Lop" ManuallyRouted="false" />
+        <AssociationConnector Association="qlgymModel.FK_LichLop_NhanVien_MaNV" ManuallyRouted="false" />
+        <AssociationConnector Association="qlgymModel.FK_SP_LSP" ManuallyRouted="false" />
+        <AssociationConnector Association="qlgymModel.FK_LopHoc_NhanVien_MaNV" ManuallyRouted="false" />
+        <AssociationConnector Association="qlgymModel.NhanVienChuyenMon" ManuallyRouted="false" />
+        <EntityTypeShape EntityType="qlgymModel.database_firewall_rules" Width="1.5" PointX="0.75" PointY="0.75" />
+      </Diagram>
+    </edmx:Diagrams>
+  </edmx:Designer>
+</edmx:Edmx>

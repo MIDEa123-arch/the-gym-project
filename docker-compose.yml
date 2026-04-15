@@ -5,7 +5,7 @@ services:
       context: .
       dockerfile: Dockerfile
     image: ql_phonggym_web:latest
-    isolation: process           
+    isolation: process           # Dùng chung kernel với Host - không cần Hyper-V, nhẹ hơn nhiều
     ports:
       - "8888:80"
     depends_on:
@@ -20,7 +20,7 @@ services:
       context: .
       dockerfile: Dockerfile.sql
     image: ql_phonggym_sql:latest
-    isolation: hyperv            # SỬA TỪ process -> hyperv
+    isolation: process           # Dùng chung kernel với Host - không cần Hyper-V, nhẹ hơn nhiều
     ports:
       - "1433:1433"
     environment:
@@ -39,7 +39,7 @@ services:
       context: .
       dockerfile: Dockerfile.sql
     image: ql_phonggym_sql:latest
-    isolation: hyperv            # SỬA TỪ process -> hyperv
+    isolation: process           # Dùng chung kernel với Host - không cần Hyper-V, nhẹ hơn nhiều
     depends_on:
       - sql_server
     environment:

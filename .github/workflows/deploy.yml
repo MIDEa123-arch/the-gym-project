@@ -1,0 +1,162 @@
+name: CI/CD – Gym Management System
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+  workflow_dispatch:   # Cho phép chạy thủ công từ GitHub UI
+
+env:
+  WEB_IMAGE: ql_phonggym_web
+  SQL_IMAGE: ql_phonggym_sql
+
+jobs:
+  # ─────────────────────────────────────────────
+  # JOB 1: BUILD & PUSH IMAGES
+  # ─────────────────────────────────────────────
+  build:
+    name: Build Docker Images
+    runs-on: windows-2019          # PHẢI dùng Windows runner cho Windows Containers
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Switch Docker to Windows Containers mode
+        run: |
+          & "C:\Program Files\Docker\Docker\DockerCli.exe" -SwitchWindowsEngine
+          Start-Sleep -Seconds 5
+          docker version
+        shell: powershell
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build Web App image
+        run: |
+          docker build -f Dockerfile `
+            -t ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.WEB_IMAGE }}:latest `
+            -t ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.WEB_IMAGE }}:${{ github.sha }} `
+            .
+        shell: powershell
+
+      - name: Build SQL Server image
+        run: |
+          docker build -f Dockerfile.sql `
+            -t ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.SQL_IMAGE }}:latest `
+            -t ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.SQL_IMAGE }}:${{ github.sha }} `
+            .
+        shell: powershell
+
+      - name: Push images to Docker Hub
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+        run: |
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.WEB_IMAGE }}:latest
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.WEB_IMAGE }}:${{ github.sha }}
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.SQL_IMAGE }}:latest
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.SQL_IMAGE }}:${{ github.sha }}
+        shell: powershell
+
+  # ─────────────────────────────────────────────
+  # JOB 2: SMOKE TEST (chạy stack và kiểm tra)
+  # ─────────────────────────────────────────────
+  smoke-test:
+    name: Smoke Test
+    runs-on: windows-2019
+    needs: build
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Switch Docker to Windows Containers mode
+        run: |
+          & "C:\Program Files\Docker\Docker\DockerCli.exe" -SwitchWindowsEngine
+          Start-Sleep -Seconds 5
+        shell: powershell
+
+      - name: Start stack with docker-compose
+        run: docker-compose up -d
+        shell: powershell
+
+      - name: Wait for services to be ready (90s)
+        run: Start-Sleep -Seconds 90
+        shell: powershell
+
+      - name: Check all containers are running
+        run: docker-compose ps
+        shell: powershell
+
+      - name: Test Web App HTTP response
+        run: |
+          $response = Invoke-WebRequest -Uri "http://localhost:8888" -UseBasicParsing -TimeoutSec 30
+          Write-Host "HTTP Status: $($response.StatusCode)"
+          if ($response.StatusCode -ne 200) {
+            Write-Error "Web app returned non-200 status!"
+            exit 1
+          }
+          Write-Host "Web App OK"
+        shell: powershell
+
+      - name: Test SQL Server connectivity
+        run: |
+          $result = sqlcmd -S localhost,1433 -U sa -P "${{ secrets.SA_PASSWORD }}" `
+                           -Q "SELECT 'SQL Server OK' AS Status" -h -1
+          Write-Host $result
+          if ($result -notmatch "SQL Server OK") {
+            Write-Error "SQL Server connectivity test failed!"
+            exit 1
+          }
+          Write-Host "SQL Server OK"
+        shell: powershell
+
+      - name: Show logs if tests failed
+        if: failure()
+        run: docker-compose logs --tail=50
+        shell: powershell
+
+      - name: Cleanup
+        if: always()
+        run: docker-compose down
+        shell: powershell
+
+  # ─────────────────────────────────────────────
+  # JOB 3: DEPLOY lên Windows Server (tự host)
+  # ─────────────────────────────────────────────
+  deploy:
+    name: Deploy to Windows Server
+    runs-on: self-hosted          # Runner cài trên chính máy chủ Windows Server
+    needs: smoke-test
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Pull latest images
+        run: |
+          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.WEB_IMAGE }}:latest
+          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.SQL_IMAGE }}:latest
+        shell: powershell
+
+      - name: Tag pulled images với tên local
+        run: |
+          docker tag ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.WEB_IMAGE }}:latest ql_phonggym_web:latest
+          docker tag ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.SQL_IMAGE }}:latest ql_phonggym_sql:latest
+        shell: powershell
+
+      - name: Restart only web_app (giữ nguyên sql_server để bảo toàn dữ liệu)
+        run: docker-compose up -d --no-deps --no-build web_app
+        shell: powershell
+
+      - name: Verify deployment
+        run: |
+          Start-Sleep -Seconds 15
+          $response = Invoke-WebRequest -Uri "http://localhost:8888" -UseBasicParsing -TimeoutSec 20
+          Write-Host "Deploy thành công! HTTP $($response.StatusCode)"
+        shell: powershell
