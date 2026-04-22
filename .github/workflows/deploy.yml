@@ -68,6 +68,8 @@ jobs:
     runs-on: self-hosted
     needs: build
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    env:
+      SA_PASSWORD: ${{ secrets.SA_PASSWORD }}
 
     steps:
       - name: Checkout source code
@@ -146,6 +148,8 @@ jobs:
     runs-on: self-hosted          # Runner installed on the Windows Server host
     needs: smoke-test
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    env:
+      SA_PASSWORD: ${{ secrets.SA_PASSWORD }}
 
     steps:
       - name: Checkout source code
