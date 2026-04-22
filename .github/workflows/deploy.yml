@@ -248,3 +248,8 @@ jobs:
           Write-Host "--- web_app logs ---"
           docker compose logs web_app --tail 50
         shell: powershell
+
+      - name: Prune old Docker resources
+        if: success()
+        run: docker system prune -af --filter "until=24h"
+        shell: powershell

@@ -1,72 +1,91 @@
 services:
-  # ── Web Application (ASP.NET Framework 4.8 trên IIS) ──────────────────
+  # ── Dịch vụ Web Application (ASP.NET 4.8) ──────────────────
   web_app:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: .                  # Lấy nguyên liệu tại thư mục hiện hành
+      dockerfile: Dockerfile      # File hướng dẫn đóng gói Web
     image: ql_phonggym_web:latest
-    isolation: process           # Dùng chung kernel với Host - không cần Hyper-V, nhẹ hơn nhiều
+    deploy:
+      resources:
+        limits:
+          cpus: '1.5'             # Giới hạn tối đa 1.5 nhân CPU
+          memory: 1536M           # Giới hạn tối đa 1.5GB RAM
     ports:
-      - "8888:80"
+      - "8888:80"                 # Mở cổng 8888 máy thật nối vào cổng 80 container
     depends_on:
       sql_server:
-        condition: service_healthy  # Chờ SQL Server healthy trước khi start
+        condition: service_healthy # Chỉ chạy Web khi SQL Server đã sẵn sàng hoàn toàn
     networks:
-      - gym_network
-    restart: unless-stopped
+      - gym_network               # Tham gia mạng nội bộ chung
+    restart: unless-stopped       # Tự khởi động lại trừ khi bị tắt chủ động
+    logging:                      # Cấu hình lưu nhật ký (Logs)
+      driver: "json-file"
+      options:
+        max-size: "10m"           # File log tối đa 10MB (tránh đầy ổ cứng)
+        max-file: "3"             # Lưu tối đa 3 file log cũ
+    healthcheck:                  # Kiểm tra xem Web có thực sự chạy không
+      test: ["CMD", "powershell", "-Command", "Invoke-WebRequest -Uri http://localhost -UseBasicParsing || exit 1"]
+      interval: 30s               # Kiểm tra mỗi 30 giây
+      timeout: 10s
+      retries: 3
 
-
-  # ── SQL Server Express (build từ Dockerfile.sql + start.ps1) ──────────
+  # ── Dịch vụ SQL Server 2017 Express ────────────────────────
   sql_server:
     build:
       context: .
-      dockerfile: Dockerfile.sql
+      dockerfile: Dockerfile.sql  # File hướng dẫn cài đặt SQL Server
     image: ql_phonggym_sql:latest
-    isolation: process           # Dùng chung kernel với Host - không cần Hyper-V, nhẹ hơn nhiều
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'             # SQL cần nhiều CPU hơn (2 nhân)
+          memory: 2048M           # Cấp 2GB RAM cho Database
     ports:
-      - "1433:1433"
+      - "1433:1433"               # Cổng kết nối Database tiêu chuẩn
     environment:
-      - ACCEPT_EULA=Y
-      - sa_password=Admin@123!_Gym
-      - attach_dbs=[]
+      - ACCEPT_EULA=Y             # Đồng ý bản quyền Microsoft
+      - sa_password=${SA_PASSWORD} # Lấy mật khẩu từ file .env (Bảo mật)
+      - attach_dbs=[]             # Danh sách DB tự động nạp
     volumes:
-      - sql_data:C:\Data
+      - sql_data:C:\Data          # Lưu dữ liệu ra máy thật (Tránh mất data khi xóa container)
     networks:
       - gym_network
     restart: always
-    healthcheck:
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "3"
+    healthcheck:                  # Thử kết nối vào SQL, nếu OK mới báo "Healthy"
       test: ["CMD", "powershell", "-Command",
-             "try { & sqlcmd -S localhost -U sa -P 'Admin@123!_Gym' -Q 'SELECT 1' -b; exit 0 } catch { exit 1 }"]
+             "try { & sqlcmd -S localhost -U sa -P '${SA_PASSWORD}' -Q 'SELECT 1' -b; exit 0 } catch { exit 1 }"]
       interval: 10s
       timeout: 10s
       retries: 12
-      start_period: 90s
+      start_period: 90s           # Đợi 90s cho SQL khởi động lần đầu
 
-
-  # ── DB Seeder: chạy một lần để nạp dữ liệu mẫu (InitDB_Data.sql) ─────
+  # ── Dịch vụ DB Seeder (Nạp dữ liệu mẫu) ────────────────────
   db_seeder:
     build:
       context: .
       dockerfile: Dockerfile.sql
     image: ql_phonggym_sql:latest
-    isolation: process           # Dùng chung kernel với Host - không cần Hyper-V, nhẹ hơn nhiều
     depends_on:
-      - sql_server
+      - sql_server                # Đợi SQL Server bật lên trước
     environment:
       - ACCEPT_EULA=Y
     networks:
       - gym_network
-    command: >-
+    command: >-                   # Lệnh chạy script SQL nạp dữ liệu mẫu
       powershell -NoLogo -ExecutionPolicy Bypass -Command
       "Start-Sleep -Seconds 30; 
-       Write-Host 'Seeding database...';
-       sqlcmd -S sql_server -U sa -P 'Admin@123!_Gym' -d master -i C:\InitDB_Data.sql;
-       Write-Host 'Seed complete.'"
-    restart: "no"
+       sqlcmd -S sql_server -U sa -P '${SA_PASSWORD}' -d master -i C:\InitDB_Data.sql;"
+    restart: "no"                 # Chạy xong 1 lần rồi nghỉ, không chạy lại
 
+# ── Cấu hình Hạ tầng (Infrastructure) ────────────────────────
 networks:
   gym_network:
-    driver: nat
+    driver: nat                   # Tạo mạng nội bộ ảo kiểu NAT
 
 volumes:
-  sql_data:
+  sql_data:                       # Khai báo vùng lưu trữ dữ liệu bền vững

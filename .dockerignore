@@ -1,0 +1,12 @@
+# Bỏ qua các file và thư mục liên quan đến Git
+.git
+.github
+.gitignore
+
+# Thư mục chứa mã nguồn gốc hoặc script không cần thiết cho ứng dụng web chạy
+QL_PHONGGYM_DBMS-main/
+
+# Các file tài liệu và file cấu hình cho deployment
+*.md
+docker-compose.yml
+.env
